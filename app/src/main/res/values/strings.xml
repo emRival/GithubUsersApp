@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Github Users App</string>
+    <string name="search_hint">Masukkan Username</string>
+    <string name="dummy_username">User Name</string>
+    <string name="text_name">name</string>
+    <string name="text_username">\@Username</string>
+    <string name="text_followers">%s Followers</string>
+    <string name="text_following">%s Following</string>
+    <string name="tab_text_1">Followers</string>
+    <string name="tab_text_2">Following</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
