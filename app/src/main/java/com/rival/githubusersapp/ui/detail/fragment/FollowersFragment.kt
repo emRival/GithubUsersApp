@@ -21,7 +21,7 @@ class FollowersFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentFollowersBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -30,7 +30,7 @@ class FollowersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val layoutManager = LinearLayoutManager(requireActivity())
+        val layoutManager = LinearLayoutManager(context)
         binding.rvFollowers.layoutManager = layoutManager
 
         val username = arguments?.getString(UserDetailActivity.EXTRA_FRAGMENT).toString()

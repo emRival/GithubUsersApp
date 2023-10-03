@@ -27,14 +27,15 @@ class FragmentViewModel : ViewModel() {
                 call: Call<List<GithubItemUser>>,
                 response: Response<List<GithubItemUser>>
             ) {
-                _isLoading.value = false
+
                 if (response.isSuccessful){
+                    _isLoading.value = false
                     val responseBody = response.body()
                     if (responseBody != null) {
 //                        Log.d("ZZ_FRAG", responseBody.toString())
                         _userFollowers.value = response.body()
                     } else {
-                        _isLoading.value = false
+//                        _isLoading.value = false
                         Log.e(MainViewModel.TAG, "Detail onFailure: ${response.message()}")
                     }
                 }
@@ -56,6 +57,7 @@ class FragmentViewModel : ViewModel() {
                 call: Call<List<GithubItemUser>>,
                 response: Response<List<GithubItemUser>>
             ) {
+
                 if (response.isSuccessful){
                     _isLoading.value = false
                     val responseBody = response.body()
@@ -63,7 +65,7 @@ class FragmentViewModel : ViewModel() {
 //                        Log.d("ZZ_FRAG", responseBody.toString())
                         _userFollowers.value = response.body()
                     } else {
-                        _isLoading.value = false
+//                        _isLoading.value = false
                         Log.e(MainViewModel.TAG, "Detail onFailure: ${response.message()}")
                     }
                 }

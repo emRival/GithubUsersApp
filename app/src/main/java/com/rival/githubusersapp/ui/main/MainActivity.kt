@@ -1,29 +1,50 @@
 package com.rival.githubusersapp.ui.main
 
 import UserAdapter
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.rival.githubusersapp.R
 import com.rival.githubusersapp.data.model.GithubItemUser
 import com.rival.githubusersapp.databinding.ActivityMainBinding
 import com.rival.githubusersapp.ui.detail.UserDetailActivity
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Favorite.FavoriteActivity
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingActivity
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingPreferences
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModel
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModelFactory
+
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val mainViewModel: MainViewModel by viewModels()
+    private val settingViewModel: SettingViewModel by viewModels {
+        SettingViewModelFactory(SettingPreferences.getInstance(application.dataStore))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         binding = ActivityMainBinding.inflate(layoutInflater)
-
         setContentView(binding.root)
+
+
+      setUpThemes()
 
         val layoutManager = LinearLayoutManager(this)
         binding.rvUsers.layoutManager = layoutManager
@@ -40,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.snackbarText.observe(this) {
             it.getContentIfNotHandled()?.let { snackBarText ->
                 Snackbar.make(
-                    window.decorView.rootView,
+                    binding.root,
                     snackBarText,
                     Snackbar.LENGTH_SHORT
                 ).show()
@@ -48,6 +69,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         search()
+    }
+
+    private fun setUpThemes() {
+
+        settingViewModel.getThemeSettings().observe(this) { isDarkModeActive: Boolean ->
+            if (isDarkModeActive) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
     }
 
     private fun search() {
@@ -61,9 +93,44 @@ class MainActivity : AppCompatActivity() {
                     searchView.hide()
                     false
                 }
+            searchBar.inflateMenu(R.menu.searchbar_menu)
+            searchBar.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.menu_favorite -> {
+                        val intentFavorite = Intent(this@MainActivity, FavoriteActivity::class.java)
+                        startActivity(intentFavorite)
+                        true
+                    }
+
+                    R.id.menu_preferences -> {
+                        val intentSetting = Intent(this@MainActivity, SettingActivity::class.java)
+                        startActivity(intentSetting)
+                        true
+                    }
+
+                    else -> return@setOnMenuItemClickListener true;
+                }
+
+            }
         }
 
 
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_favorite -> {
+                Toast.makeText(this@MainActivity, "favorite", Toast.LENGTH_SHORT).show()
+                return true
+            }
+
+            R.id.menu_preferences -> {
+                Toast.makeText(this@MainActivity, "settings", Toast.LENGTH_SHORT).show()
+                return true
+            }
+
+            else -> return super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onBackPressed() {

@@ -31,7 +31,7 @@ class MainViewModel : ViewModel() {
     }
 
     internal fun findUser(username: String) {
-        _isLoading.value = true
+//        _isLoading.value = true
         val client = ApiConfig.getApiService().searchUser(username)
         client.enqueue(object : Callback<GithubResponse>{
             override fun onResponse(

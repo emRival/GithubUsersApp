@@ -1,6 +1,7 @@
 package com.rival.githubusersapp.ui.detail
 
 
+import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +13,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class UserDetailViewModel : ViewModel() {
+class UserDetailViewModel() : ViewModel() {
 
     private val _userDetail = MutableLiveData<UserDetailResponse>()
     val detail: LiveData<UserDetailResponse> = _userDetail
@@ -37,7 +38,6 @@ class UserDetailViewModel : ViewModel() {
                     if (responseBody != null) {
                         _userDetail.value = response.body()
                     } else {
-                        _isLoading.value = false
                         _snackbarText.value = Event("onFailure: ${response.message()}")
                     }
                 }

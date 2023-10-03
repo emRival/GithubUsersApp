@@ -1,11 +1,16 @@
 package com.rival.githubusersapp.ui.detail
 
+import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
@@ -13,10 +18,19 @@ import com.rival.githubusersapp.R
 import com.rival.githubusersapp.data.model.UserDetailResponse
 import com.rival.githubusersapp.databinding.ActivityUserDetailBinding
 import com.rival.githubusersapp.ui.detail.fragment.SectionPagerAdapter
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingPreferences
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModel
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModelFactory
+import com.rival.githubusersapp.ui.main.dataStore
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class UserDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserDetailBinding
     private val mainViewModel: UserDetailViewModel by viewModels()
+    private val settingViewModel: SettingViewModel by viewModels {
+        SettingViewModelFactory(SettingPreferences.getInstance(application.dataStore))
+    }
 
     companion object {
         const val EXTRA_USER = "extra_user"
@@ -46,7 +60,20 @@ class UserDetailActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = userLogin
 
+        setUpThemes()
+    }
 
+    private fun setUpThemes() {
+
+        settingViewModel.getThemeSettings().observe(this) { isDarkModeActive: Boolean ->
+            if (isDarkModeActive) {
+                binding.tabs.setTabTextColors(resources.getColor(R.color.white), resources.getColor(R.color.white))
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                binding.tabs.setTabTextColors(resources.getColor(R.color.black), resources.getColor(R.color.black))
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
     }
 
     private fun initializeUserDetail(userLogin: String) {

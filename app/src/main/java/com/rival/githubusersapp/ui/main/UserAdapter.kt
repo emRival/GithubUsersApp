@@ -1,18 +1,20 @@
-
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.rival.githubusersapp.Utils.UserDiffCallback
 import com.rival.githubusersapp.data.model.GithubItemUser
 
 import com.rival.githubusersapp.databinding.ItemRowUsersBinding
 
 class UserAdapter(private val listUser: List<GithubItemUser>) :
     RecyclerView.Adapter<UserAdapter.ViewHolder>() {
-    private lateinit var onItemClickCallback:  OnItemClickCallback
+    private lateinit var onItemClickCallback: OnItemClickCallback
+    private val dataUser = ArrayList<GithubItemUser>()
 
-    interface  OnItemClickCallback {
+    interface OnItemClickCallback {
         fun onItemClicked(data: GithubItemUser)
     }
 
@@ -29,6 +31,15 @@ class UserAdapter(private val listUser: List<GithubItemUser>) :
     }
 
     override fun getItemCount(): Int = listUser.size
+
+    fun setListFavoriteUser(user: ArrayList<GithubItemUser>) {
+        val diffCallback = UserDiffCallback(this.dataUser, user)
+        val difresult = DiffUtil.calculateDiff(diffCallback)
+        this.dataUser.clear()
+        this.dataUser.addAll(user)
+        notifyDataSetChanged()
+        difresult.dispatchUpdatesTo(this)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val dataUser = listUser[position]
