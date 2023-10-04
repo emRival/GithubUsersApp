@@ -1,13 +1,14 @@
 package com.rival.githubusersapp.ui.detail
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -15,9 +16,12 @@ import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import com.rival.githubusersapp.R
+import com.rival.githubusersapp.Utils.ViewModelFactory
+import com.rival.githubusersapp.data.model.FavoriteModel
 import com.rival.githubusersapp.data.model.UserDetailResponse
 import com.rival.githubusersapp.databinding.ActivityUserDetailBinding
 import com.rival.githubusersapp.ui.detail.fragment.SectionPagerAdapter
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Favorite.FavoriteActivity
 import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingPreferences
 import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModel
 import com.rival.githubusersapp.ui.main.ItemSearchBar.Setting.SettingViewModelFactory
@@ -27,7 +31,9 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 class UserDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserDetailBinding
-    private val mainViewModel: UserDetailViewModel by viewModels()
+    private val detailViewModel: UserDetailViewModel by viewModels {
+        ViewModelFactory.getInstance(application)
+    }
     private val settingViewModel: SettingViewModel by viewModels {
         SettingViewModelFactory(SettingPreferences.getInstance(application.dataStore))
     }
@@ -68,25 +74,26 @@ class UserDetailActivity : AppCompatActivity() {
         settingViewModel.getThemeSettings().observe(this) { isDarkModeActive: Boolean ->
             if (isDarkModeActive) {
                 binding.tabs.setTabTextColors(resources.getColor(R.color.white), resources.getColor(R.color.white))
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                binding.fabFav.rippleColor = resources.getColor(R.color.red)
             } else {
                 binding.tabs.setTabTextColors(resources.getColor(R.color.black), resources.getColor(R.color.black))
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                binding.fabFav.rippleColor = resources.getColor(R.color.red)
             }
         }
     }
 
     private fun initializeUserDetail(userLogin: String) {
-        mainViewModel.findDetail(userLogin)
+        detailViewModel.findDetail(userLogin)
 
-        mainViewModel.detail.observe(this) { detailUser ->
+        detailViewModel.detail.observe(this) { detailUser ->
             setDetailUser(detailUser)
+            setFavoriteUser(detailUser)
         }
 
-        mainViewModel.isLoading.observe(this) {
+        detailViewModel.isLoading.observe(this) {
             showLoading(it)
         }
-        mainViewModel.snackbarText.observe(this) {
+        detailViewModel.snackbarText.observe(this) {
             it.getContentIfNotHandled()?.let { snackBarText ->
                 Snackbar.make(
                     window.decorView.rootView,
@@ -95,6 +102,31 @@ class UserDetailActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun setFavoriteUser(detailUser: UserDetailResponse) {
+        detailViewModel.getFavoriteUser(detailUser.login ?: "").observe(this) {
+            val favoriteUser = FavoriteModel(detailUser.login ?: "", detailUser.avatarUrl)
+            var isFavorite = false
+
+            if (it != null) {
+                isFavorite = true
+                binding.fabFav.setImageResource(R.drawable.ic_favorite_24dp)
+            }
+
+            binding.fabFav.setOnClickListener {
+                if (!isFavorite) {
+                    detailViewModel.insert(favoriteUser)
+                    isFavorite = true
+                    binding.fabFav.setImageResource(R.drawable.ic_favorite_24dp)
+                } else {
+                    detailViewModel.delete(favoriteUser.username)
+                    isFavorite = false
+                    binding.fabFav.setImageResource(R.drawable.favorite_border)
+                }
+            }
+        }
+
     }
 
     private fun setupTabs(userLogin: String) {
@@ -130,11 +162,35 @@ class UserDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.detail_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         return when (item.itemId) {
             android.R.id.home -> {
                 finish()
+                true
+            }
+            R.id.menu_favorite_detail -> {
+                val intentFavorite = Intent(this@UserDetailActivity, FavoriteActivity::class.java)
+                startActivity(intentFavorite)
+                true
+            }
+            R.id.menu_share_detail -> {
+                detailViewModel.detail.observe(this) {userDetail ->
+                    val shareIntent = Intent()
+                    shareIntent.action = Intent.ACTION_SEND
+                    shareIntent.putExtra(
+                        Intent.EXTRA_TEXT,
+                        "Hey, check out this user! \n${userDetail.htmlUrl}"
+                    )
+                    shareIntent.type = "text/plain"
+                    startActivity(Intent.createChooser(shareIntent, "Share to: "))
+
+                }
                 true
             }
 

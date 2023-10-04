@@ -2,18 +2,23 @@ package com.rival.githubusersapp.ui.detail
 
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.rival.githubusersapp.Utils.Event
+import com.rival.githubusersapp.data.model.FavoriteModel
 import com.rival.githubusersapp.data.model.UserDetailResponse
 import com.rival.githubusersapp.data.network.ApiConfig
+import com.rival.githubusersapp.ui.main.ItemSearchBar.Favorite.repository.FavoriteRepository
 
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class UserDetailViewModel() : ViewModel() {
+class UserDetailViewModel(application: Application) : ViewModel() {
+
+    private val mUserRepository: FavoriteRepository = FavoriteRepository(application)
 
     private val _userDetail = MutableLiveData<UserDetailResponse>()
     val detail: LiveData<UserDetailResponse> = _userDetail
@@ -24,6 +29,17 @@ class UserDetailViewModel() : ViewModel() {
     private val _snackbarText = MutableLiveData<Event<String>>()
     val snackbarText: LiveData<Event<String>> = _snackbarText
 
+    fun getFavoriteUser(username: String): LiveData<FavoriteModel> =
+        mUserRepository.getFavoriteUser(username)
+
+    fun insert(user: FavoriteModel) {
+        mUserRepository.insert(user)
+        Log.d("FavoriteAddViewModel", "${user.username}; ${user.avatarUrl} added")
+    }
+
+    fun delete(user: String) {
+        mUserRepository.delete(user)
+    }
     internal fun findDetail(username: String){
         _isLoading.value = true
         val client = ApiConfig.getApiService().getDetailUser(username)

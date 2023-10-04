@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
 
-                    else -> return@setOnMenuItemClickListener true;
+                    else -> return@setOnMenuItemClickListener true
                 }
 
             }
